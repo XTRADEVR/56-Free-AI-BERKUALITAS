@@ -22,8 +22,11 @@ st.set_page_config(
 
 DATA_FILE = Path(__file__).with_name("chat_data.json")
 
+DEFAULT_MODEL = "gemini-3.5-flash-lite"
+OLD_MODELS = {"gemini-2.5-flash-lite"}  # sudah tidak tersedia -> otomatis dimigrasi
+
 MODEL_OPTIONS = [
-    "gemini-2.5-flash-lite",
+    DEFAULT_MODEL,
     "gemini-2.5-flash",
     "Lainnya (ketik manual)",
 ]
@@ -202,6 +205,8 @@ def load_db() -> dict:
             data = json.loads(DATA_FILE.read_text(encoding="utf-8"))
             base = default_db()
             base.update(data)
+            if base.get("model") in OLD_MODELS:
+                base["model"] = DEFAULT_MODEL
             return base
         except Exception:
             pass
@@ -479,7 +484,7 @@ def sidebar() -> None:
             custom = st.text_input(
                 "Nama model",
                 value="" if current_model in MODEL_OPTIONS else current_model,
-                placeholder="mis. gemini-2.5-flash-lite",
+                placeholder="mis. gemini-3.5-flash-lite",
             ).strip()
             new_model = custom or MODEL_OPTIONS[0]
         else:
