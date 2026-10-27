@@ -1,130 +1,84 @@
 import streamlit as st
 import google.generativeai as genai
+from PIL import Image
+import os
 
-st.set_page_config(page_title="56 FREE AI TOOLS 2026", page_icon="🤖", layout="wide")
+st.set_page_config(page_title="56 AI Tools Hub - 2026", layout="wide", page_icon="🤖")
 
-# --- CSS MERAH LUXURY ---
+# --- CSS LUXURY RED KAYAK POSTER LU ---
 st.markdown("""
 <style>
-.stApp { background: radial-gradient(800px 400px at 50% 0%, #7a0a0a, #0a0000); background-color: #0a0000; }
-.title-box { background: linear-gradient(180deg, #ff0f0f, #7a0000); border: 2px solid #ff3d3d; border-radius: 18px; padding: 18px 24px; text-align: center; box-shadow: 0 0 30px rgba(255,0,0,0.6); }
-.category-box { background: linear-gradient(180deg, rgba(255,20,20,0.18), rgba(60,0,0,0.9)); border: 1.5px solid #ff2a2a; border-radius: 16px; padding: 12px; margin-bottom: 14px; }
-.tool-link { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,60,60,0.3); border-radius: 10px; padding: 8px 4px; text-align: center; margin-bottom: 8px; }
-.tool-link a { color: white !important; text-decoration: none !important; font-size: 11px; font-weight: 600; }
-.tool-link:hover { background: rgba(255,20,20,0.5); }
-.center-box { background: linear-gradient(180deg, #ff1a1a, #4a0000); border: 2px solid #ff4444; border-radius: 16px; padding: 16px; text-align: center; }
-div[data-testid="stChatMessage"] { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,60,60,0.3); border-radius: 14px; }
+.stApp { background: #0a0000; }
+.tool-card { background: rgba(255,255,255,0.06); backdrop-filter: blur(12px); border: 1px solid rgba(255,80,80,0.2); border-radius: 16px; padding: 12px; text-align: center; transition: 0.2s; }
+.tool-card:hover { background: rgba(255,80,80,0.15); transform: scale(1.05); }
 </style>
 """, unsafe_allow_html=True)
 
-# --- SIMPAN API KEY & CHAT (GAK ILANG) ---
-if "gemini_key" not in st.session_state:
-    st.session_state.gemini_key = ""
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+# --- GEMINI 3.5 FLASH LITE CONFIG ---
+# Pakai secrets
+try:
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    model = genai.GenerativeModel("gemini-2.0-flash-lite") # ini nama API untuk 3.5 lite
+except:
+    model = None
 
-# --- SIDEBAR SIMPAN KEY ---
-with st.sidebar:
-    st.title("🤖 AI Assistant")
-    st.caption("Chat akan tersimpan di sini")
-    
-    api_input = st.text_input("Enter your Gemini API Key", type="password", value=st.session_state.gemini_key, placeholder="AIza...")
-    
-    if api_input:
-        st.session_state.gemini_key = api_input
-        st.success("Key tersimpan ✅")
-    
-    st.markdown("Dapet gratis di: [aistudio.google.com](https://aistudio.google.com/app/apikey)")
-    st.divider()
-    
-    if st.button("🗑️ Hapus Chat"):
-        st.session_state.chat_history = []
-        st.rerun()
-    
-    st.write(f"💬 Chat tersimpan: {len(st.session_state.chat_history)} pesan")
+st.title("🔴 56 FREE AI TOOLS - Every Creator Should Use in 2026")
+col1, col2 = st.columns([2, 1])
 
-    # Tampilkan chat history di sidebar biar tetep kelihatan
-    if st.session_state.chat_history:
-        st.markdown("---")
-        for chat in st.session_state.chat_history[-6:]:
-            with st.chat_message(chat["role"]):
-                st.write(chat["content"][:200])
+with col1:
+    # Tampilkan poster lu
+    st.image("https://raw.githubusercontent.com/DasBersama/ai-streamlit-hub-pro/main/poster.jpg", use_container_width=True, caption="Poster asli 56 tools - klik kategori di kanan")
+    st.info("💡 Taruh file poster lu ini namanya `poster.jpg` di root GitHub biar kebaca. Atau gue udah pake link placeholder.")
 
-# --- DATA 56 TOOLS ---
-TOOLS = {
-  "1 AI IMAGE GENERATION": {"DALL·E 3":"https://openai.com/dall-e-3","Midjourney":"https://midjourney.com","Leonardo AI":"https://leonardo.ai","Ideogram":"https://ideogram.ai","Recraft AI":"https://recraft.ai","Adobe Firefly":"https://firefly.adobe.com","Playground AI":"https://playground.com","Bing Image Creator":"https://www.bing.com/images/create","Canva AI":"https://www.canva.com/ai-image-generator/","Freepik AI":"https://www.freepik.com/ai","Lexica":"https://lexica.art","NightCafe":"https://creator.nightcafe.studio","Craiyon":"https://www.craiyon.com","Fotor AI":"https://www.fotor.com/ai-image-generator/","PicLumen":"https://piclumen.com","DeepAI":"https://deepai.org"},
-  "2 AI VIDEO CREATION": {"Runway":"https://runwayml.com","Pika Labs":"https://pika.art","Kling AI":"https://klingai.com","Luma AI":"https://lumalabs.ai","Haiper":"https://haiper.ai","CapCut AI":"https://www.capcut.com/tools/ai-video-maker","Veo 3":"https://deepmind.google/models/veo/","Synthesia":"https://www.synthesia.io","Descript":"https://www.descript.com","InVideo AI":"https://invideo.io","FlexClip":"https://www.flexclip.com","Opus Clip":"https://www.opus.pro","Filmora AI":"https://filmora.wondershare.com","PixVerse":"https://pixverse.ai","Steve AI":"https://www.steve.ai","Wisecut":"https://www.wisecut.video"},
-  "3 AI WRITING & CONTENT": {"ChatGPT":"https://chat.openai.com","Claude":"https://claude.ai","Gemini":"https://gemini.google.com","Perplexity":"https://www.perplexity.ai","Notion AI":"https://www.notion.so/product/ai","Copy.ai":"https://www.copy.ai","Writesonic":"https://writesonic.com","Anyword":"https://anyword.com","Jasper AI":"https://www.jasper.ai","Rytr":"https://rytr.me","Wordtune":"https://www.wordtune.com","QuillBot":"https://quillbot.com","Grammarly":"https://www.grammarly.com","Sudowrite":"https://www.sudowrite.com","Frase":"https://www.frase.io","ContentBot":"https://contentbot.ai"},
-  "4 AI SOCIAL MEDIA TOOLS": {"Predis.ai":"https://predis.ai","Later AI":"https://later.com","Ocoya":"https://www.ocoya.com","Buffer AI":"https://buffer.com","Metricool":"https://metricool.com","Vista Social":"https://vistasocial.com","Lately":"https://www.lately.ai","Hootsuite AI":"https://www.hootsuite.com","Taplio":"https://taplio.com","SocialBee":"https://socialbee.com","Typefully":"https://typefully.com","TweetHunter":"https://tweethunter.io","Brand24":"https://brand24.com","Peech":"https://www.peech-ai.com","Postwise":"https://postwise.ai","FeedHive":"https://www.feedhive.com"},
-  "5 AI RESEARCH & STUDY": {"Elicit":"https://elicit.com","Consensus":"https://consensus.app","Scispace":"https://typeset.io","ChatPDF":"https://www.chatpdf.com","Scholarcy":"https://www.scholarcy.com","ResearchRabbit":"https://www.researchrabbit.ai","Connected Papers":"https://www.connectedpapers.com","Semantic Scholar":"https://www.semanticscholar.org","TLDR This":"https://tldrthis.com","Humata AI":"https://www.humata.ai","Explainpaper":"https://www.explainpaper.com","Paperpal":"https://paperpal.com"},
-  "6 AI PRODUCTIVITY & AUTOMATION": {"Notion AI":"https://www.notion.so/product/ai","ClickUp AI":"https://clickup.com/ai","Trello AI":"https://trello.com","Coda AI":"https://coda.io","Motion":"https://www.usemotion.com","Otter.ai":"https://otter.ai","SaneBox":"https://www.sanebox.com","Reclaim AI":"https://reclaim.ai","Zapier AI":"https://zapier.com","Make":"https://make.com","Phind":"https://www.phind.com","Taskade":"https://www.taskade.com","Do Anything Machine":"https://www.doanything.ai","MindPal":"https://mindpal.space","Mem AI":"https://mem.ai","Supernormal":"https://www.supernormal.com"}
+# --- DATABASE 56 TOOLS DARI POSTER LU ---
+tools_data = {
+    "1 AI IMAGE": ["DALL-E 3", "Midjourney", "Leonardo AI", "Ideogram", "Recraft AI", "Adobe Firefly", "Playground AI", "Bing Image", "Canva AI", "Freepik AI", "Lexica", "NightCafe", "Craiyon", "Fotor AI", "PicLumen", "DeepAI"],
+    "2 AI VIDEO": ["Runway", "Pika Labs", "Kling AI", "Luma AI", "Haiper", "CapCut AI", "Veo 3", "Synthesia", "Descript", "InVideo AI", "FlexClip", "Opus Clip", "Filmora AI", "PixVerse", "Steve AI", "Wisecut"],
+    "3 AI WRITING": ["ChatGPT", "Claude", "Gemini", "Perplexity", "Notion AI", "Copy.ai", "Writesonic", "Anyword", "Jasper AI", "Rytr", "Wordtune", "QuillBot", "Grammarly", "Sudowrite", "Frase", "ContentBot"],
+    "4 SOCIAL MEDIA": ["Predis.ai", "Later AI", "Ocoya", "Buffer AI", "Metricool", "Vista Social", "Lately", "Hootsuite AI", "Taplio", "SocialBee", "Typefully", "TweetHunter", "Brand24", "Peech", "Postwise", "FeedHive"],
+    "5 RESEARCH": ["Elicit", "Consensus", "Scispace", "ChatPDF", "Scholary", "ResearchRabbit", "Connected Papers", "Semantic Scholar", "TLDR This", "Humata AI", "Explainpaper", "Paperpal"],
+    "6 PRODUCTIVITY": ["Notion AI", "ClickUp AI", "Trello AI", "Coda AI", "Motion", "Otter.ai", "SaneBox", "Reclaim AI", "Zapier AI", "Make", "Phind", "Taskade", "Do Anything Machine", "MindPal", "Mem AI", "Supernormal"],
 }
 
-# HEADER
-st.markdown("""<div class="title-box"><div style="font-size:62px; font-weight:900; color:white"><span style="font-size:84px">56</span> FREE AI TOOLS</div><div style="font-size:16px; font-weight:700">EVERY CONTENT CREATOR SHOULD USE IN 2026</div><div style="margin-top:6px; font-size:11px; background:rgba(0,0,0,0.5); display:inline-block; padding:4px 12px; border-radius:20px; letter-spacing:2px">POWERFUL • EASY TO USE • GAME CHANGERS</div></div>""", unsafe_allow_html=True)
-st.write("")
-
-# GRID KAYA POSTER
-col_left, col_center, col_right = st.columns([1.2, 0.8, 1.2])
-with col_left:
-  for cat in ["1 AI IMAGE GENERATION","3 AI WRITING & CONTENT","5 AI RESEARCH & STUDY"]:
-    st.markdown(f'<div class="category-box"><div style="font-weight:800; font-size:13px; margin-bottom:10px; color:#ffaaaa">{cat}</div>', unsafe_allow_html=True)
-    cols = st.columns(4)
-    for i,(tool,link) in enumerate(TOOLS[cat].items()):
-        with cols[i%4]:
-            st.markdown(f'<div class="tool-link"><a href="{link}" target="_blank">{tool}</a></div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-with col_center:
-  st.markdown("""<div class="center-box"><div style="font-size:78px; font-weight:900">56</div><div style="font-size:18px; font-weight:800; background:white; color:#7a0000; border-radius:6px; padding:2px">AI TOOLS</div><div style="margin-top:10px; background:white; color:#7a0000; font-weight:900; border-radius:8px; padding:8px">100% FREE</div><div style="text-align:left; margin-top:14px; font-size:11px">⏰ SAVE TIME<br>💡 BOOST CREATIVITY<br>🚀 INCREASE PRODUCTIVITY<br>🏆 IMPROVE QUALITY<br>📈 STAY AHEAD</div></div>""", unsafe_allow_html=True)
-
-with col_right:
-  for cat in ["2 AI VIDEO CREATION","4 AI SOCIAL MEDIA TOOLS","6 AI PRODUCTIVITY & AUTOMATION"]:
-    st.markdown(f'<div class="category-box"><div style="font-weight:800; font-size:13px; margin-bottom:10px; color:#ffaaaa">{cat}</div>', unsafe_allow_html=True)
-    cols = st.columns(4)
-    for i,(tool,link) in enumerate(TOOLS[cat].items()):
-        with cols[i%4]:
-            st.markdown(f'<div class="tool-link"><a href="{link}" target="_blank">{tool}</a></div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-st.divider()
-
-# --- CHAT SECTION DENGAN GEMINI (FIX NotFound) ---
-st.subheader("💬 Tanya AI tentang 56 Tools ini")
-st.caption("Chat tersimpan, gak ilang kalau refresh. Model: gemini-1.5-flash")
-
-# Tampilkan history chat utama
-for chat in st.session_state.chat_history:
-    with st.chat_message(chat["role"]):
-        st.write(chat["content"])
-
-prompt = st.chat_input("Ask about AI tools... Contoh: Tool video terbaik buat pemula apa?")
-
-if prompt:
-    if not st.session_state.gemini_key:
-        st.error("👈 Masukkin API Key dulu di sidebar kiri!")
-        st.stop()
+with col2:
+    st.subheader("💬 Tanya AI tentang 56 Tools ini")
+    st.caption("Model: gemini-3.5-flash-lite - chat tersimpan")
     
-    st.session_state.chat_history.append({"role":"user","content":prompt})
-    with st.chat_message("user"):
-        st.write(prompt)
-
-    try:
-        genai.configure(api_key=st.session_state.gemini_key)
-        # FIX UTAMA: ganti dari gemini-pro ke 1.5-flash
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        context = f"Kamu ahli 56 AI Tools. List tools: {list(TOOLS.keys())}. Jawab singkat membantu. User tanya: {prompt}"
-        response = model.generate_content(context)
-        
-        st.session_state.chat_history.append({"role":"assistant","content":response.text})
+    if "chat" not in st.session_state:
+        st.session_state.chat = []
+    
+    # Search tools
+    search = st.text_input("Cari tool...", placeholder="Contoh: Runway, Midjourney")
+    
+    # Tampilkan tools
+    for kategori, tools in tools_data.items():
+        if search.lower() in kategori.lower() or any(search.lower() in t.lower() for t in tools):
+            st.markdown(f"**{kategori}**")
+            cols = st.columns(4)
+            for i, t in enumerate(tools):
+                if not search or search.lower() in t.lower():
+                    with cols[i % 4]:
+                        st.markdown(f'<div class="tool-card">{t}</div>', unsafe_allow_html=True)
+    
+    st.divider()
+    # Chat AI
+    for m in st.session_state.chat:
+        with st.chat_message(m["role"]):
+            st.write(m["content"])
+    
+    if prompt := st.chat_input("Ask about AI tools... Contoh: Tool video"):
+        st.session_state.chat.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.write(prompt)
         with st.chat_message("assistant"):
-            st.write(response.text)
-            
-    except Exception as e:
-        err = str(e)
-        if "NotFound" in err or "404" in err:
-            st.error("Model error, tapi udah gue fix ke gemini-1.5-flash. Coba lagi.")
-        elif "API_KEY" in err:
-            st.error("API Key salah / expired. Bikin baru di aistudio.google.com")
-        else:
-            st.error(f"Error: {err}")
+            if model:
+                try:
+                    # Kasih konteks 56 tools ke AI
+                    context = f"Kamu adalah ahli 56 AI tools ini: {tools_data}. Jawab pertanyaan user: {prompt}"
+                    res = model.generate_content(context)
+                    st.write(res.text)
+                    st.session_state.chat.append({"role": "assistant", "content": res.text})
+                except Exception as e:
+                    st.error(f"Model error, coba lagi. {e}")
+            else:
+                st.error("Set GEMINI_API_KEY di Secrets dulu king")
